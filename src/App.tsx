@@ -104,6 +104,7 @@ function App() {
   }, [view]);
 
   const changeView = (nextView: AuthView) => {
+    if (loading) return;
     setView(nextView);
     setFeedback(null);
     setPassword("");
@@ -237,6 +238,7 @@ function App() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   ref={emailRef}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -250,6 +252,7 @@ function App() {
                     <button
                       className="text-button forgot-link"
                       type="button"
+                      disabled={loading}
                       onClick={() => changeView("reset")}
                     >
                       Forgot password?
@@ -267,6 +270,7 @@ function App() {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     ref={passwordRef}
+                    disabled={loading}
                     minLength={showConfirmation ? 8 : undefined}
                     aria-describedby={
                       showConfirmation
@@ -283,6 +287,7 @@ function App() {
                     onClick={() => setShowPassword((visible) => !visible)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     aria-pressed={showPassword}
+                    disabled={loading}
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
@@ -330,6 +335,7 @@ function App() {
                   placeholder="Enter your password again"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
+                  disabled={loading}
                   minLength={8}
                   required
                 />
@@ -366,7 +372,7 @@ function App() {
             {view === "sign-in" && (
               <p>
                 New to IntiVentory?{" "}
-                <button className="text-button strong" type="button" onClick={() => changeView("sign-up")}>
+                <button className="text-button strong" type="button" disabled={loading} onClick={() => changeView("sign-up")}>
                   Create an account
                 </button>
               </p>
@@ -374,7 +380,7 @@ function App() {
             {view === "sign-up" && (
               <p>
                 Already have an account?{" "}
-                <button className="text-button strong" type="button" onClick={() => changeView("sign-in")}>
+                <button className="text-button strong" type="button" disabled={loading} onClick={() => changeView("sign-in")}>
                   Sign in
                 </button>
               </p>
@@ -382,12 +388,12 @@ function App() {
             {view === "reset" && (
               <p>
                 Remembered your password?{" "}
-                <button className="text-button strong" type="button" onClick={() => changeView("sign-in")}>
+                <button className="text-button strong" type="button" disabled={loading} onClick={() => changeView("sign-in")}>
                   Back to sign in
                 </button>
               </p>
             )}
-            {view === "update-password" && <p>Reset link verified. Choose a new password above.</p>}
+            {view === "update-password" && <p>Choose a new password to finish resetting your account.</p>}
           </div>
         </div>
 

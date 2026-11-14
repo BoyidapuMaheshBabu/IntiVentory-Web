@@ -178,6 +178,12 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
 .field-group input:hover { border-color: #9DB5A5; }
 
+.field-group input:disabled {
+  background: #F7F9F7;
+  color: #69786F;
+  cursor: not-allowed;
+}
+
 .field-group input:focus {
   border-color: var(--color-primary);
   outline: none;
@@ -203,9 +209,14 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
 }
 
-.password-toggle:hover {
+.password-toggle:hover:not(:disabled) {
   background: #F1F5F1;
   color: var(--color-primary);
+}
+
+.password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .password-toggle svg,
