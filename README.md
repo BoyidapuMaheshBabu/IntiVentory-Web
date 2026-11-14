@@ -1,38 +1,32 @@
 # IntiVentory Web
 
-A household inventory and expense management web application.
+An online-first household inventory and expense management web application.
 
-## What is IntiVentory Web?
+## Technology foundation
 
-IntiVentory Web is intended to help households keep their everyday essentials organized. It brings household stock and expense records together, making it easier to see what is available, record items that are added or used, and keep track of household spending.
+- React + TypeScript
+- Vite for local development and production builds
+- Supabase Auth and PostgreSQL-backed services
+- CSS using the approved IntiVentory visual identity
 
-## Why was this project created?
+The Android and web applications share the IntiVentory brand, but remain separate applications. Cross-platform accounts and data synchronization are not assumed until explicitly designed.
 
-Household inventory and day-to-day spending can be difficult to keep organized when records are scattered or maintained informally. This project was created to explore a practical solution to that everyday problem and to build a useful web product around it.
+## Local development
 
-This repository is dedicated to the web edition of the IntiVentory idea. It is kept separate from the existing Android inventory project so the two projects can develop independently.
+Requirements: Node.js 20 or newer.
 
-## What are we building in this repository?
+Install dependencies with npm install, copy .env.example to .env.local, then run npm run dev.
 
-The goal is to build a web application that helps households:
+On Windows PowerShell, copy the environment template with Copy-Item .env.example .env.local.
 
-- Organize everyday household essentials.
-- Keep track of available stock.
-- Record items as they are added or used.
-- Maintain household expense records.
-- Understand household spending over time.
+Add the Supabase project URL and publishable key to .env.local to enable real authentication. Without them, the sign-in experience runs in local preview mode.
 
-## Initial product direction
+Run a production build locally with npm run build, then inspect it with npm run preview before any deployment.
 
-The agreed starting direction is an **online-first, cloud-based web experience**. Offline access and synchronization may be explored in the future, but they are not part of the initial scope.
+## Security
 
-The product requirements and technical decisions will be explored separately before implementation begins.
+Never commit .env.local, Supabase secret keys, or service-role keys. See the authentication setup documentation under docs/05-security/authentication.
 
----
+## Project documentation
 
-## 👨‍💻 Developer
-
-**Boyidapu Mahesh Babu**  
-Diploma in Computer Science Engineering student
-
-[GitHub Profile](https://github.com/BoyidapuMaheshBabu)
+Product truth and confirmed constraints live in PRODUCT.md. The first surface brief is docs/02-design/login-page.md. Shared brand assets and prior design decisions are documented in docs/README.md.
