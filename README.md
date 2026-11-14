@@ -27,3 +27,12 @@ The goal is to build a web application that helps households:
 The agreed starting direction is an **online-first, cloud-based web experience**. Offline access and synchronization may be explored in the future, but they are not part of the initial scope.
 
 The product requirements and technical decisions will be explored separately before implementation begins.
+
+---
+
+## 👨‍💻 Developer
+
+**Boyidapu Mahesh Babu**  
+Diploma in Computer Science Engineering student
+
+[GitHub Profile](https://github.com/BoyidapuMaheshBabu)
