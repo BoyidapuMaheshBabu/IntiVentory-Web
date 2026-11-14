@@ -196,6 +196,23 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .auth-switch { margin-top: 27px; color: var(--color-muted); font-size: 13px; text-align: center; }
 .auth-switch p { margin: 0; }
 .auth-footnote { margin: 48px 0 0; color: #5F7066; font-size: 12px; text-align: center; }
+.password-strength { margin-top: 9px; }
+.password-strength-label {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 620;
+}
+.password-strength-value { font-weight: 700; }
+.password-strength-meter { height: 4px; border-radius: 2px; background: #E7EDE7; overflow: hidden; }
+.password-strength-bar { height: 100%; border-radius: 2px; width: 0%; transition: width 200ms ease, background-color 200ms ease; }
+.password-strength-bar.very-weak { width: 20%; background-color: var(--color-error); }
+.password-strength-bar.weak { width: 40%; background-color: #D9822B; }
+.password-strength-bar.medium { width: 60%; background-color: #C0A000; }
+.password-strength-bar.strong { width: 80%; background-color: var(--color-success); }
+.password-strength-bar.very-strong { width: 100%; background-color: #14532D; }
 .auth-copyright { position: absolute; inset-inline-start: 64px; inset-block-end: 28px; color: #5F7066; font-size: 11px; }
 .story-side {
   display: flex;

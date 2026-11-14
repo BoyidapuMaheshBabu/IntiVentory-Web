@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, useRef, type FormEvent } from "react";
 import appIcon from "../docs/assets/intiventory-app-icon.svg";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
 type AuthView = "sign-in" | "sign-up" | "reset" | "update-password";
 type Feedback = { kind: "success" | "error" | "info"; text: string };
+type PasswordStrength = "very-weak" | "weak" | "medium" | "strong" | "very-strong";
 
 const copy = {
   "sign-in": {
@@ -40,6 +41,10 @@ function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>("very-weak");
+
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -51,6 +56,41 @@ function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Focus management on view change
+  useEffect(() => {
+    // Small delay to allow DOM to render
+    const timer = setTimeout(() => {
+      switch (view) {
+        case "sign-in":
+        case "sign-up":
+        case "reset":
+          if (emailRef.current) emailRef.current.focus();
+          break;
+        case "update-password":
+          if (passwordRef.current) passwordRef.current.focus();
+          break;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [view]);
+
+  // Password strength meter
+  useEffect(() => {
+    setPasswordStrength("very-weak");
+    if (password.length === 0) return;
+    const len = password.length;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const scores = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+    if (scores >= 4 && len >= 12) setPasswordStrength("very-strong");
+    else if (scores >= 4 || (scores >= 3 && len >= 8)) setPasswordStrength("strong");
+    else if (scores >= 3 || (scores >= 2 && len >= 6)) setPasswordStrength("medium");
+    else if (scores >= 2 || len >= 4) setPasswordStrength("weak");
+    else setPasswordStrength("very-weak");
+  }, [password]);
 
   const changeView = (nextView: AuthView) => {
     setView(nextView);
@@ -64,9 +104,17 @@ function App() {
     if (loading) return;
     setFeedback(null);
 
-    if ((view === "sign-up" || view === "update-password") && password !== confirmPassword) {
-      setFeedback({ kind: "error", text: "Your passwords don’t match. Please check them and try again." });
-      return;
+    // Validate confirm password for sign-up and update-password views
+    if (view === "sign-up" || view === "update-password") {
+      if (password !== confirmPassword) {
+        setFeedback({ kind: "error", text: "Your passwords don't match. Please check them and try again." });
+        return;
+      }
+      // For update-password, also check strength
+      if (view === "update-password" && passwordStrength === "very-weak") {
+        setFeedback({ kind: "error", text: "Password is too weak. Please choose a stronger password." });
+        return;
+      }
     }
 
     if (!supabase) {
@@ -160,6 +208,7 @@ function App() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                ref={emailRef}
                 required
               />
             </div>}
@@ -183,6 +232,7 @@ function App() {
                     placeholder={view === "sign-up" ? "At least 8 characters" : "Enter your password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
+                    ref={passwordRef}
                     minLength={view === "sign-up" || view === "update-password" ? 8 : undefined}
                     required
                   />
@@ -195,6 +245,23 @@ function App() {
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
+                  {(view === "sign-up" || view === "update-password") && (
+                    <div className="password-strength">
+                      <div className="password-strength-label">
+                        <span>Password strength</span>
+                        <span className={`password-strength-value ${passwordStrength}`}>
+                          {passwordStrength === "very-weak" && "Very weak"}
+                          {passwordStrength === "weak" && "Weak"}
+                          {passwordStrength === "medium" && "Medium"}
+                          {passwordStrength === "strong" && "Strong"}
+                          {passwordStrength === "very-strong" && "Very strong"}
+                        </span>
+                      </div>
+                      <div className="password-strength-meter">
+                        <div className={`password-strength-bar ${passwordStrength}`} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -245,12 +312,15 @@ function App() {
             {view === "update-password" && <p>Reset link verified. Choose a new password above.</p>}
           </div>
 
-          <p className="auth-footnote">Your household, a little more organized.</p>
+          {view !== "sign-in" && view !== "sign-up" && view !== "reset" && view !== "update-password" && (
+        <p className="auth-footnote">Your household, a little more organized.</p>
+      )}
         </div>
         <footer className="auth-copyright">© {new Date().getFullYear()} IntiVentory</footer>
       </section>
 
-      <aside className="story-side" aria-label="About IntiVentory">
+      {view !== "sign-in" && view !== "sign-up" && view !== "reset" && view !== "update-password" && (
+        <aside className="story-side" aria-label="About IntiVentory">
         <div className="story-content">
           <div className="story-heading">
             <p className="story-kicker">A calmer way to keep track</p>
@@ -302,6 +372,7 @@ function App() {
           <p className="story-tagline" lang="te">మన ఇంటి సరుకులు, మన ఇంటి లెక్కలు.</p>
         </div>
       </aside>
+      )}
     </main>
   );
 }
