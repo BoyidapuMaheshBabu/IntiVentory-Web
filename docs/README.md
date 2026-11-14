@@ -18,9 +18,14 @@ IntiVentory Android and IntiVentory Web are two applications for the same produc
 - Do not invent a separate web logo or create a replacement icon.
 - Keep the same brand identity across platforms while adapting layouts and interactions to each platform.
 
-## Pending asset
+## Shared brand assets
 
-The existing Android app icon / logo will be copied into this repository by the project owner. Until that asset is available, do not generate or substitute a new logo or image.
+The original IntiVentory SVG assets from the Android repository are stored in `docs/assets/`:
+
+- `intiventory-app-icon.svg` — app icon.
+- `intiventory-logo.svg` — full logo lockup.
+
+These are reused as-is. Do not generate or substitute a different logo. Any future web-specific adaptations should preserve the approved brand identity and be reviewed separately.
 
 ## Working principle
 
