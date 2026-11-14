@@ -1,10 +1,14 @@
-import { useEffect, useState, useRef, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import appIcon from "../docs/assets/intiventory-app-icon.svg";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
 type AuthView = "sign-in" | "sign-up" | "reset" | "update-password";
 type Feedback = { kind: "success" | "error" | "info"; text: string };
-type PasswordStrength = "very-weak" | "weak" | "medium" | "strong" | "very-strong";
+type PasswordStrength = {
+  score: number;
+  label: "Weak" | "Fair" | "Good" | "Strong";
+  className: "weak" | "fair" | "good" | "strong";
+};
 
 const copy = {
   "sign-in": {
@@ -15,7 +19,7 @@ const copy = {
   },
   "sign-up": {
     title: "Create your account",
-    description: "Set up your account to start organizing your household.",
+    description: "Bring your household essentials and spending into one place.",
     action: "Create account",
     busy: "Creating account…",
   },
@@ -33,86 +37,92 @@ const copy = {
   },
 } satisfies Record<AuthView, { title: string; description: string; action: string; busy: string }>;
 
+function getPasswordStrength(value: string): PasswordStrength | null {
+  if (!value) return null;
+
+  const variety = [
+    /[a-z]/.test(value),
+    /[A-Z]/.test(value),
+    /[0-9]/.test(value),
+    /[^A-Za-z0-9]/.test(value),
+  ].filter(Boolean).length;
+
+  const score = Math.min(
+    4,
+    (value.length >= 8 ? 1 : 0) +
+      (value.length >= 12 ? 1 : 0) +
+      (variety >= 2 ? 1 : 0) +
+      (variety >= 3 ? 1 : 0),
+  );
+
+  if (score >= 4) return { score, label: "Strong", className: "strong" };
+  if (score === 3) return { score, label: "Good", className: "good" };
+  if (score === 2) return { score, label: "Fair", className: "fair" };
+  return { score, label: "Weak", className: "weak" };
+}
+
 function App() {
-  const [view, setView] = useState<AuthView>(() => window.location.hash.includes("type=recovery") ? "update-password" : "sign-in");
+  const [view, setView] = useState<AuthView>(() => {
+    const recoveryType = new URLSearchParams(window.location.hash.slice(1)).get("type");
+    return recoveryType === "recovery" ? "update-password" : "sign-in";
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>("very-weak");
 
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const passwordStrength = getPasswordStrength(password);
 
   useEffect(() => {
     if (!supabase) return;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setView("update-password");
+        setPassword("");
+        setConfirmPassword("");
+        setShowPassword(false);
         setFeedback(null);
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
-  // Focus management on view change
   useEffect(() => {
-    // Small delay to allow DOM to render
-    const timer = setTimeout(() => {
-      switch (view) {
-        case "sign-in":
-        case "sign-up":
-        case "reset":
-          if (emailRef.current) emailRef.current.focus();
-          break;
-        case "update-password":
-          if (passwordRef.current) passwordRef.current.focus();
-          break;
-      }
-    }, 100);
-    return () => clearTimeout(timer);
+    if (view === "update-password") {
+      passwordRef.current?.focus();
+    } else {
+      emailRef.current?.focus();
+    }
   }, [view]);
-
-  // Password strength meter
-  useEffect(() => {
-    setPasswordStrength("very-weak");
-    if (password.length === 0) return;
-    const len = password.length;
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const scores = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
-    if (scores >= 4 && len >= 12) setPasswordStrength("very-strong");
-    else if (scores >= 4 || (scores >= 3 && len >= 8)) setPasswordStrength("strong");
-    else if (scores >= 3 || (scores >= 2 && len >= 6)) setPasswordStrength("medium");
-    else if (scores >= 2 || len >= 4) setPasswordStrength("weak");
-    else setPasswordStrength("very-weak");
-  }, [password]);
 
   const changeView = (nextView: AuthView) => {
     setView(nextView);
     setFeedback(null);
     setPassword("");
     setConfirmPassword("");
+    setShowPassword(false);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
+
     setFeedback(null);
 
-    // Validate confirm password for sign-up and update-password views
     if (view === "sign-up" || view === "update-password") {
       if (password !== confirmPassword) {
-        setFeedback({ kind: "error", text: "Your passwords don't match. Please check them and try again." });
-        return;
-      }
-      // For update-password, also check strength
-      if (view === "update-password" && passwordStrength === "very-weak") {
-        setFeedback({ kind: "error", text: "Password is too weak. Please choose a stronger password." });
+        setFeedback({
+          kind: "error",
+          text: "Your passwords don’t match. Check both fields and try again.",
+        });
         return;
       }
     }
@@ -120,16 +130,21 @@ function App() {
     if (!supabase) {
       setFeedback({
         kind: "info",
-        text: "The page is ready for local testing. Add your Supabase project URL and publishable key to .env.local to enable account access.",
+        text: "This is a local preview. Add your Supabase project URL and publishable key to .env.local to enable account access.",
       });
       return;
     }
 
     setLoading(true);
+
     try {
       if (view === "sign-in") {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
         if (error) throw error;
+
         setFeedback({
           kind: "success",
           text: "You’re signed in. Your household workspace will be available in the next development phase.",
@@ -141,6 +156,7 @@ function App() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
+
         setFeedback({
           kind: "success",
           text: data.session
@@ -152,6 +168,7 @@ function App() {
           redirectTo: window.location.origin,
         });
         if (error) throw error;
+
         setFeedback({
           kind: "success",
           text: "If an account exists for that email, a password reset link is on its way.",
@@ -159,10 +176,15 @@ function App() {
       } else {
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
+
         setView("sign-in");
         setPassword("");
         setConfirmPassword("");
-        setFeedback({ kind: "success", text: "Your password has been updated. Sign in with your new password." });
+        setShowPassword(false);
+        setFeedback({
+          kind: "success",
+          text: "Your password has been updated. Sign in with your new password.",
+        });
       }
     } catch (error) {
       setFeedback({
@@ -175,6 +197,8 @@ function App() {
   };
 
   const currentCopy = copy[view];
+  const showPasswordFields = view !== "reset";
+  const showConfirmation = view === "sign-up" || view === "update-password";
 
   return (
     <main className="auth-layout">
@@ -193,47 +217,64 @@ function App() {
           {!isSupabaseConfigured && (
             <div className="setup-note" role="status">
               <span className="setup-note-dot" aria-hidden="true" />
-              Local preview · Supabase connection not configured yet
+              <span>Local preview · Supabase connection not configured</span>
             </div>
           )}
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-            {view !== "update-password" && <div className="field-group">
-              <label htmlFor="email">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                ref={emailRef}
-                required
-              />
-            </div>}
+          <form className="auth-form" onSubmit={handleSubmit} aria-busy={loading}>
+            {view !== "update-password" && (
+              <div className="field-group">
+                <label htmlFor="email">Email address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  ref={emailRef}
+                  required
+                />
+              </div>
+            )}
 
-            {view !== "reset" && (
+            {showPasswordFields && (
               <div className="field-group">
                 <div className="field-label-row">
                   <label htmlFor="password">Password</label>
                   {view === "sign-in" && (
-                    <button className="text-button" type="button" onClick={() => changeView("reset")}>
+                    <button
+                      className="text-button forgot-link"
+                      type="button"
+                      onClick={() => changeView("reset")}
+                    >
                       Forgot password?
                     </button>
                   )}
                 </div>
+
                 <div className="password-control">
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete={view === "sign-in" ? "current-password" : "new-password"}
-                    placeholder={view === "sign-up" ? "At least 8 characters" : "Enter your password"}
+                    placeholder={view === "sign-in" ? "Enter your password" : "At least 8 characters"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     ref={passwordRef}
-                    minLength={view === "sign-up" || view === "update-password" ? 8 : undefined}
+                    minLength={showConfirmation ? 8 : undefined}
+                    aria-describedby={
+                      showConfirmation
+                        ? passwordStrength
+                          ? "password-strength"
+                          : "password-guidance"
+                        : undefined
+                    }
                     required
                   />
                   <button
@@ -245,28 +286,40 @@ function App() {
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
-                  {(view === "sign-up" || view === "update-password") && (
-                    <div className="password-strength">
+                </div>
+
+                {showConfirmation && (
+                  passwordStrength ? (
+                    <div
+                      className="password-strength"
+                      id="password-strength"
+                      role="meter"
+                      aria-label="Password strength"
+                      aria-valuemin={0}
+                      aria-valuemax={4}
+                      aria-valuenow={passwordStrength.score}
+                      aria-valuetext={passwordStrength.label}
+                    >
                       <div className="password-strength-label">
                         <span>Password strength</span>
-                        <span className={`password-strength-value ${passwordStrength}`}>
-                          {passwordStrength === "very-weak" && "Very weak"}
-                          {passwordStrength === "weak" && "Weak"}
-                          {passwordStrength === "medium" && "Medium"}
-                          {passwordStrength === "strong" && "Strong"}
-                          {passwordStrength === "very-strong" && "Very strong"}
+                        <span className={"password-strength-value strength-" + passwordStrength.className}>
+                          {passwordStrength.label}
                         </span>
                       </div>
-                      <div className="password-strength-meter">
-                        <div className={`password-strength-bar ${passwordStrength}`} />
+                      <div className="password-strength-meter" aria-hidden="true">
+                        <span className={"password-strength-fill strength-" + passwordStrength.className} />
                       </div>
                     </div>
-                  )}
-                </div>
+                  ) : (
+                    <p className="field-hint" id="password-guidance">
+                      Use at least 8 characters.
+                    </p>
+                  )
+                )}
               </div>
             )}
 
-            {(view === "sign-up" || view === "update-password") && (
+            {showConfirmation && (
               <div className="field-group">
                 <label htmlFor="confirm-password">Confirm password</label>
                 <input
@@ -284,15 +337,25 @@ function App() {
             )}
 
             {feedback && (
-              <div className={"feedback feedback-" + feedback.kind} role={feedback.kind === "error" ? "alert" : "status"}>
+              <div
+                className={"feedback feedback-" + feedback.kind}
+                role={feedback.kind === "error" ? "alert" : "status"}
+                aria-live={feedback.kind === "error" ? "assertive" : "polite"}
+              >
                 <span className="feedback-mark" aria-hidden="true">
-                  {feedback.kind === "success" ? <CheckIcon /> : feedback.kind === "error" ? <AlertIcon /> : <InfoIcon />}
+                  {feedback.kind === "success" ? (
+                    <CheckIcon />
+                  ) : feedback.kind === "error" ? (
+                    <AlertIcon />
+                  ) : (
+                    <InfoIcon />
+                  )}
                 </span>
                 <p>{feedback.text}</p>
               </div>
             )}
 
-            <button className="primary-button" type="submit" disabled={loading}>
+            <button className="primary-button" type="submit" disabled={loading} aria-busy={loading}>
               <span>{loading ? currentCopy.busy : currentCopy.action}</span>
               {!loading && <ArrowIcon />}
               {loading && <span className="button-spinner" aria-hidden="true" />}
@@ -301,32 +364,42 @@ function App() {
 
           <div className="auth-switch">
             {view === "sign-in" && (
-              <p>New to IntiVentory? <button className="text-button strong" type="button" onClick={() => changeView("sign-up")}>Create an account</button></p>
+              <p>
+                New to IntiVentory?{" "}
+                <button className="text-button strong" type="button" onClick={() => changeView("sign-up")}>
+                  Create an account
+                </button>
+              </p>
             )}
             {view === "sign-up" && (
-              <p>Already have an account? <button className="text-button strong" type="button" onClick={() => changeView("sign-in")}>Sign in</button></p>
+              <p>
+                Already have an account?{" "}
+                <button className="text-button strong" type="button" onClick={() => changeView("sign-in")}>
+                  Sign in
+                </button>
+              </p>
             )}
             {view === "reset" && (
-              <p>Remembered your password? <button className="text-button strong" type="button" onClick={() => changeView("sign-in")}>Back to sign in</button></p>
+              <p>
+                Remembered your password?{" "}
+                <button className="text-button strong" type="button" onClick={() => changeView("sign-in")}>
+                  Back to sign in
+                </button>
+              </p>
             )}
             {view === "update-password" && <p>Reset link verified. Choose a new password above.</p>}
           </div>
-
-          {view !== "sign-in" && view !== "sign-up" && view !== "reset" && view !== "update-password" && (
-        <p className="auth-footnote">Your household, a little more organized.</p>
-      )}
         </div>
+
         <footer className="auth-copyright">© {new Date().getFullYear()} IntiVentory</footer>
       </section>
 
-      {view !== "sign-in" && view !== "sign-up" && view !== "reset" && view !== "update-password" && (
-        <aside className="story-side" aria-label="About IntiVentory">
+      <aside className="story-side" aria-label="About IntiVentory">
         <div className="story-content">
           <div className="story-heading">
-            <p className="story-kicker">A calmer way to keep track</p>
             <h2>Know what’s at home.<br />Stay on top of the little things.</h2>
             <p className="story-description">
-              Keep everyday essentials and household spending in one clear place.
+              Keep everyday essentials, stock changes, and household spending in one clear place.
             </p>
           </div>
 
@@ -336,7 +409,7 @@ function App() {
                 <span className="preview-brand-mark"><HouseIcon /></span>
                 <span>Household overview</span>
               </div>
-              <span className="preview-live"><span /> Sample view</span>
+              <span className="preview-live">Illustrative preview</span>
             </div>
 
             <div className="preview-body">
@@ -346,25 +419,37 @@ function App() {
 
               <div className="preview-list">
                 <div className="preview-row">
-                  <span className="category-symbol symbol-food" aria-hidden="true">F</span>
-                  <span className="preview-row-copy"><strong>Food &amp; kitchen</strong><small>Pantry essentials</small></span>
-                  <span className="preview-chevron" aria-hidden="true">›</span>
+                  <span className="category-symbol symbol-food" aria-hidden="true"><FoodIcon /></span>
+                  <span className="preview-row-copy">
+                    <strong>Food &amp; kitchen</strong>
+                    <small>Pantry essentials</small>
+                  </span>
+                  <span className="preview-chevron" aria-hidden="true"><ChevronIcon /></span>
                 </div>
                 <div className="preview-row">
-                  <span className="category-symbol symbol-home" aria-hidden="true">H</span>
-                  <span className="preview-row-copy"><strong>Home care &amp; cleaning</strong><small>Everyday home supplies</small></span>
-                  <span className="preview-chevron" aria-hidden="true">›</span>
+                  <span className="category-symbol symbol-home" aria-hidden="true"><CleaningIcon /></span>
+                  <span className="preview-row-copy">
+                    <strong>Home care &amp; cleaning</strong>
+                    <small>Everyday home supplies</small>
+                  </span>
+                  <span className="preview-chevron" aria-hidden="true"><ChevronIcon /></span>
                 </div>
                 <div className="preview-row">
-                  <span className="category-symbol symbol-personal" aria-hidden="true">P</span>
-                  <span className="preview-row-copy"><strong>Personal care</strong><small>Daily-use essentials</small></span>
-                  <span className="preview-chevron" aria-hidden="true">›</span>
+                  <span className="category-symbol symbol-personal" aria-hidden="true"><PersonalCareIcon /></span>
+                  <span className="preview-row-copy">
+                    <strong>Personal care</strong>
+                    <small>Daily-use essentials</small>
+                  </span>
+                  <span className="preview-chevron" aria-hidden="true"><ChevronIcon /></span>
                 </div>
               </div>
 
               <div className="preview-bottom">
                 <span className="preview-bottom-icon"><ListIcon /></span>
-                <span><strong>Keep the small things in view.</strong><small>Stock, purchases and everyday use.</small></span>
+                <span>
+                  <strong>Keep the small things in view.</strong>
+                  <small>Stock, purchases and everyday use.</small>
+                </span>
               </div>
             </div>
           </div>
@@ -372,7 +457,6 @@ function App() {
           <p className="story-tagline" lang="te">మన ఇంటి సరుకులు, మన ఇంటి లెక్కలు.</p>
         </div>
       </aside>
-      )}
     </main>
   );
 }
@@ -400,6 +484,18 @@ function HouseIcon() {
 }
 function ListIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg>;
+}
+function FoodIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h16l-1.4 8.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 11Z" /><path d="M3 11h18M8 7c0-1.4 1-2 1-3m4 3c0-1.4 1-2 1-3m3 3c0-1.4 1-2 1-3" /></svg>;
+}
+function CleaningIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 19 8-8m-5 10 9-9m-2-7 5 5M4 20l-1 1m11-16 2-2 4 4-2 2" /><path d="M15 3.5 17 2l5 5-1.5 2" /></svg>;
+}
+function PersonalCareIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8m-7 0V2h6v2m-8 4h10l1 13H6L7 8Z" /><path d="M10 12h4m-2-2v4" /></svg>;
+}
+function ChevronIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>;
 }
 
 export default App;
