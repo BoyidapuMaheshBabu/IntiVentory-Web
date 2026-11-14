@@ -1,5 +1,5 @@
 :root {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Nirmala UI", "Noto Sans Telugu", sans-serif;
   color: #273832;
   background: #F4F6F0;
   font-synthesis: none;
@@ -39,7 +39,8 @@ body {
 
 button, input { font: inherit; }
 button { cursor: pointer; }
-button:disabled { cursor: wait; }
+button:disabled { cursor: not-allowed; }
+button[aria-busy="true"] { cursor: wait; }
 
 ::selection {
   background: #DCEBE1;
@@ -47,7 +48,7 @@ button:disabled { cursor: wait; }
 }
 
 button:focus-visible, a:focus-visible, input:focus-visible {
-  outline: 3px solid rgba(47, 107, 98, 0.34);
+  outline: 3px solid rgba(47, 107, 98, 0.45);
   outline-offset: 3px;
 }
 
@@ -62,37 +63,59 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .auth-side {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
   min-width: 0;
   padding: 48px clamp(28px, 5.4vw, 82px) 28px;
   background: var(--color-white);
+  overflow-y: auto;
 }
 
 .auth-content {
   width: min(100%, 420px);
-  margin: auto;
+  margin-inline: auto;
+  margin-block: auto;
 }
 
 .brand-lockup {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
-  margin-bottom: 52px;
+  gap: 12px;
+  margin-bottom: 46px;
   color: var(--color-primary);
   text-decoration: none;
-  font-size: 21px;
-  font-weight: 720;
-  letter-spacing: -0.65px;
+  border-radius: 12px;
 }
 
 .brand-icon {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 11px;
+  flex-shrink: 0;
 }
 
-.auth-heading { margin-bottom: 28px; }
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand-name {
+  font-size: 21px;
+  font-weight: 720;
+  letter-spacing: -0.65px;
+  color: var(--color-primary);
+}
+
+.brand-subname {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  letter-spacing: 0;
+  margin-top: 1px;
+}
+
+.auth-heading { margin-bottom: 26px; }
 
 .auth-heading h1 {
   margin: 0 0 9px;
@@ -129,9 +152,28 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   flex: 0 0 auto;
   width: 7px;
   height: 7px;
-  margin-top: 5px;
+  margin-top: 6px;
   border-radius: 50%;
   background: #6A947A;
+}
+
+.setup-note-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.setup-note-copy strong {
+  color: #2E4E3F;
+  font-weight: 650;
+}
+
+.setup-note-copy code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #E5EDE7;
+  color: #273832;
 }
 
 .auth-form {
@@ -167,7 +209,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   border-radius: 9px;
   background: var(--color-white);
   color: var(--color-ink);
-  font-size: 15px;
+  font-size: 16px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
@@ -187,7 +229,16 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .field-group input:focus {
   border-color: var(--color-primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(47, 107, 98, 0.12);
+  box-shadow: 0 0 0 3px rgba(47, 107, 98, 0.22);
+}
+
+.field-group input[aria-invalid="true"] {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 1px var(--color-error);
+}
+
+.field-group input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(165, 60, 53, 0.22);
 }
 
 .password-control { position: relative; }
@@ -196,12 +247,12 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
 .password-toggle {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 7px;
@@ -239,12 +290,13 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 4px 0;
+  min-height: 38px;
+  padding: 4px 6px;
   border: 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--color-primary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
   line-height: 1.3;
   text-align: start;
@@ -252,7 +304,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   text-underline-offset: 3px;
 }
 
-.text-button:hover {
+.text-button:hover:not(:disabled) {
   color: var(--color-primary-hover);
   text-decoration: underline;
 }
@@ -260,26 +312,38 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .text-button.strong {
   font-size: inherit;
   font-weight: 700;
+  padding-inline: 4px;
 }
 
 .forgot-link { white-space: nowrap; }
 
+.password-feedback-block {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .field-hint {
   margin: 0;
   color: var(--color-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
-.password-strength { margin-top: 9px; }
+.field-hint-success {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.password-strength { margin-top: 2px; }
 
 .password-strength-label {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 0 7px;
+  margin: 0 0 6px;
   color: var(--color-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 620;
 }
 
@@ -321,7 +385,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   border-radius: 9px;
   background: var(--color-primary);
   color: var(--color-white);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 680;
   transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
@@ -358,7 +422,11 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   line-height: 1.5;
 }
 
-.feedback p { margin: 0; }
+.feedback p {
+  margin: 0;
+  word-break: break-word;
+}
+
 .feedback-mark { display: inline-flex; flex: 0 0 auto; margin-top: 1px; }
 .feedback-mark svg { width: 17px; height: 17px; }
 
@@ -393,8 +461,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .auth-copyright {
   width: min(100%, 420px);
   margin: 34px auto 0;
-  color: #5F7066;
-  font-size: 11px;
+  color: var(--color-muted);
+  font-size: 12px;
   text-align: center;
 }
 
@@ -405,6 +473,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   min-width: 0;
   padding: 56px clamp(32px, 5.6vw, 84px);
   background: var(--color-warm-mist);
+  overflow-y: auto;
 }
 
 .story-content { width: min(100%, 520px); }
@@ -433,6 +502,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   border: 1px solid #DCE5DC;
   border-radius: 15px;
   background: var(--color-white);
+  box-shadow: 0 8px 24px -4px rgba(39, 56, 50, 0.06);
 }
 
 .preview-topbar {
@@ -471,8 +541,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 
 .preview-live {
-  color: #5F7066;
-  font-size: 10px;
+  color: var(--color-muted);
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -480,8 +550,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
 .preview-label {
   margin: 0 0 7px;
-  color: #607168;
-  font-size: 10px;
+  color: var(--color-muted);
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.1em;
 }
@@ -497,7 +567,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .preview-subtitle {
   margin: 7px 0 18px;
   color: var(--color-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -541,8 +611,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 
 .preview-row-copy small {
-  color: #5F7066;
-  font-size: 10px;
+  color: var(--color-muted);
+  font-size: 11px;
 }
 
 .preview-chevron {
@@ -578,15 +648,17 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 
 .preview-bottom small {
-  color: #5F7066;
-  font-size: 10px;
+  color: var(--color-muted);
+  font-size: 11px;
 }
 
 .story-tagline {
   margin: 24px 0 0;
   color: #52665C;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   text-align: center;
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 960px) {
@@ -605,9 +677,11 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
 @media (max-width: 480px) {
   .auth-side { padding: 28px 22px 22px; }
-  .brand-lockup { margin-bottom: 42px; font-size: 19px; }
-  .brand-icon { width: 38px; height: 38px; }
-  .auth-heading { margin-bottom: 25px; }
+  .brand-lockup { margin-bottom: 38px; }
+  .brand-icon { width: 40px; height: 40px; }
+  .brand-name { font-size: 20px; }
+  .brand-subname { font-size: 11.5px; }
+  .auth-heading { margin-bottom: 24px; }
   .auth-heading h1 { font-size: 30px; }
   .auth-form { gap: 17px; }
   .auth-copyright { margin-top: 28px; }
@@ -615,9 +689,9 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
 @media (max-width: 360px) {
   .auth-side { padding-inline: 18px; }
-  .auth-heading h1 { font-size: 28px; }
-  .field-label-row { align-items: flex-start; }
-  .forgot-link { font-size: 11px; }
+  .auth-heading h1 { font-size: 27px; }
+  .field-label-row { align-items: center; }
+  .forgot-link { font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
