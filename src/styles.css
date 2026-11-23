@@ -52,6 +52,33 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   outline-offset: 3px;
 }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: auto;
+  height: auto;
+  padding: 8px 14px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 650;
+  border-radius: 6px;
+  text-decoration: none;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .auth-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -65,7 +92,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   flex-direction: column;
   justify-content: safe center;
   min-width: 0;
-  padding: 48px clamp(28px, 5.4vw, 82px) 28px;
+  padding: 48px clamp(32px, 5.6vw, 84px) 28px;
   background: var(--color-white);
   overflow-y: auto;
 }

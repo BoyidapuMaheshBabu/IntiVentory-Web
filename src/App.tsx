@@ -68,6 +68,31 @@ function clearRecoveryUrl() {
   }
 }
 
+function sanitizeAuthError(message: string): string {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("invalid login") || normalized.includes("invalid email") || normalized.includes("wrong password")) {
+    return "The email or password is incorrect. Please try again.";
+  }
+  if (normalized.includes("email not confirmed") || normalized.includes("email_confirmation")) {
+    return "Please verify your email before signing in. Check your inbox for the verification link.";
+  }
+  if (normalized.includes("user already registered") || normalized.includes("already exists")) {
+    return "An account with this email already exists. Try signing in instead.";
+  }
+  if (normalized.includes("weak password") || normalized.includes("password should be at least")) {
+    return "Please choose a stronger password.";
+  }
+  if (normalized.includes("network") || normalized.includes("fetch") || normalized.includes("failed to fetch")) {
+    return "Unable to connect. Check your internet and try again.";
+  }
+  if (normalized.includes("too many requests") || normalized.includes("rate limit")) {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+
+  return "Something went wrong. Please try again.";
+}
+
 function App() {
   const [view, setView] = useState<AuthView>(() => {
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -236,7 +261,7 @@ function App() {
     } catch (error) {
       setFeedback({
         kind: "error",
-        text: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        text: sanitizeAuthError(error instanceof Error ? error.message : String(error)),
       });
     } finally {
       setLoading(false);
@@ -245,6 +270,12 @@ function App() {
 
   return (
     <main className="auth-layout">
+      <a
+        className="skip-link"
+        href="#auth-form"
+      >
+        Skip to form
+      </a>
       <section className="auth-side" aria-labelledby="auth-title">
         <div className="auth-content">
           <a
@@ -282,7 +313,7 @@ function App() {
             </div>
           )}
 
-          <form className="auth-form" onSubmit={handleSubmit} aria-busy={loading}>
+          <form className="auth-form" id="auth-form" onSubmit={handleSubmit} aria-busy={loading}>
             {view !== "update-password" && (
               <div className="field-group">
                 <label htmlFor="email">Email address</label>
