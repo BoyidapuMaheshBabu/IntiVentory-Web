@@ -82,15 +82,15 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .auth-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  min-height: 100vh;
-  min-height: 100svh;
+  height: 100vh;
+  height: 100svh;
   background: var(--color-white);
 }
 
 .auth-side {
   display: flex;
   flex-direction: column;
-  justify-content: safe center;
+  justify-content: center;
   min-width: 0;
   padding: 48px clamp(32px, 5.6vw, 84px) 28px;
   background: var(--color-white);
@@ -101,6 +101,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   width: min(100%, 420px);
   margin-inline: auto;
   margin-block: auto;
+  min-height: 520px;
 }
 
 .brand-lockup {
@@ -697,7 +698,10 @@ button:focus-visible, a:focus-visible, input:focus-visible {
     padding: 36px 28px 26px;
   }
 
-  .auth-content { width: min(100%, 440px); }
+  .auth-content { 
+    width: min(100%, 440px); 
+    min-height: 480px;
+  }
   .auth-copyright { margin-top: 30px; }
   .story-side { display: none; }
 }
@@ -712,6 +716,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .auth-heading h1 { font-size: 30px; }
   .auth-form { gap: 17px; }
   .auth-copyright { margin-top: 28px; }
+  .auth-content { min-height: 440px; }
 }
 
 @media (max-width: 360px) {
@@ -719,6 +724,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .auth-heading h1 { font-size: 27px; }
   .field-label-row { align-items: center; }
   .forgot-link { font-size: 12px; }
+  .auth-content { min-height: 400px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
