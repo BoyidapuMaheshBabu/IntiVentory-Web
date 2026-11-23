@@ -93,6 +93,21 @@ function sanitizeAuthError(message: string): string {
   return "Something went wrong. Please try again.";
 }
 
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isRetryableError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("network") ||
+    normalized.includes("fetch") ||
+    normalized.includes("failed to fetch") ||
+    normalized.includes("too many requests") ||
+    normalized.includes("rate limit")
+  );
+}
+
 function App() {
   const [view, setView] = useState<AuthView>(() => {
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -106,6 +121,8 @@ function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -118,6 +135,7 @@ function App() {
   const showConfirmation = view === "sign-up" || view === "update-password";
   const isPasswordMismatchError =
     feedback?.kind === "error" && feedback.text.toLowerCase().includes("passwords don’t match");
+  const showEmailError = emailTouched && email && !isValidEmail(email);
 
   // Sync tab title with active view
   useEffect(() => {
@@ -162,6 +180,26 @@ function App() {
     setPassword("");
     setConfirmPassword("");
     setShowPassword(false);
+    setEmailTouched(false);
+    setEmailError("");
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    if (email && !isValidEmail(email)) {
+      setEmailError("Enter a valid email address.");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (emailTouched && val && !isValidEmail(val)) {
+      setEmailError("Enter a valid email address.");
+    } else if (emailTouched && val && isValidEmail(val)) {
+      setEmailError("");
+    }
   };
 
   const handlePasswordChange = (val: string) => {
@@ -180,6 +218,14 @@ function App() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    await doSubmit();
+  };
+
+  const handleRetry = async () => {
+    await doSubmit();
+  };
+
+  const doSubmit = async () => {
     if (loading) return;
 
     setFeedback(null);
@@ -327,12 +373,25 @@ function App() {
                   spellCheck={false}
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => handleEmailChange(event.target.value)}
+                  onBlur={handleEmailBlur}
                   ref={emailRef}
                   disabled={loading}
-                  aria-describedby={feedback ? feedbackId : undefined}
+                  aria-describedby={
+                    showEmailError
+                      ? "email-error"
+                      : feedback
+                      ? feedbackId
+                      : undefined
+                  }
+                  aria-invalid={showEmailError ? true : undefined}
                   required
                 />
+                {showEmailError && (
+                  <p id="email-error" className="field-hint field-hint-error" role="alert">
+                    {emailError}
+                  </p>
+                )}
               </div>
             )}
 
@@ -486,6 +545,16 @@ function App() {
                   )}
                 </span>
                 <p>{feedback.text}</p>
+                {feedback.kind === "error" && isRetryableError(feedback.text) && (
+                  <button
+                    className="text-button strong"
+                    type="button"
+                    onClick={handleRetry}
+                    disabled={loading}
+                  >
+                    Try again
+                  </button>
+                )}
               </div>
             )}
 

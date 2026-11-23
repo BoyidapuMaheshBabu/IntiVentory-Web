@@ -101,7 +101,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   width: min(100%, 420px);
   margin-inline: auto;
   margin-block: auto;
-  min-height: 520px;
+  min-height: 460px;
 }
 
 .brand-lockup {
@@ -160,6 +160,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .setup-note {
@@ -363,6 +364,11 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   font-weight: 600;
 }
 
+.field-hint-error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
 .password-strength { margin-top: 2px; }
 
 .password-strength-label {
@@ -523,11 +529,12 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .preview-window {
   overflow: hidden;
-  border: 1px solid #DCE5DC;
+  border: 1px solid var(--color-sage);
   border-radius: 15px;
   background: var(--color-white);
   box-shadow: 0 8px 24px -4px rgba(39, 56, 50, 0.06);
@@ -597,6 +604,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
   font-size: 12px;
   line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .preview-list { display: grid; }
@@ -649,6 +657,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   place-items: center;
   margin-inline-start: auto;
   color: #65776D;
+  opacity: 0.4;
 }
 
 .preview-chevron svg { width: 16px; height: 16px; }
@@ -700,10 +709,23 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
   .auth-content { 
     width: min(100%, 440px); 
-    min-height: 480px;
+    min-height: 420px;
   }
   .auth-copyright { margin-top: 30px; }
-  .story-side { display: none; }
+
+  .story-side {
+    display: block;
+    min-height: auto;
+    padding: 24px 28px 32px;
+  }
+
+  .story-content { width: min(100%, 440px); margin-inline: auto; }
+
+  .story-heading { margin-bottom: 24px; }
+
+  .story-heading h2 { font-size: 30px; }
+
+  .preview-window { max-width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -716,7 +738,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .auth-heading h1 { font-size: 30px; }
   .auth-form { gap: 17px; }
   .auth-copyright { margin-top: 28px; }
-  .auth-content { min-height: 440px; }
+  .auth-content { min-height: 380px; }
 }
 
 @media (max-width: 360px) {
