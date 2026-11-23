@@ -82,15 +82,15 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .auth-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  min-height: 100vh;
-  min-height: 100svh;
+  height: 100vh;
+  height: 100svh;
   background: var(--color-white);
 }
 
 .auth-side {
   display: flex;
   flex-direction: column;
-  justify-content: safe center;
+  justify-content: center;
   min-width: 0;
   padding: 48px clamp(32px, 5.6vw, 84px) 28px;
   background: var(--color-white);
@@ -101,6 +101,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   width: min(100%, 420px);
   margin-inline: auto;
   margin-block: auto;
+  min-height: 460px;
 }
 
 .brand-lockup {
@@ -159,6 +160,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .setup-note {
@@ -362,6 +364,11 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   font-weight: 600;
 }
 
+.field-hint-error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
 .password-strength { margin-top: 2px; }
 
 .password-strength-label {
@@ -522,11 +529,12 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .preview-window {
   overflow: hidden;
-  border: 1px solid #DCE5DC;
+  border: 1px solid var(--color-sage);
   border-radius: 15px;
   background: var(--color-white);
   box-shadow: 0 8px 24px -4px rgba(39, 56, 50, 0.06);
@@ -596,6 +604,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--color-muted);
   font-size: 12px;
   line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .preview-list { display: grid; }
@@ -648,6 +657,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   place-items: center;
   margin-inline-start: auto;
   color: #65776D;
+  opacity: 0.4;
 }
 
 .preview-chevron svg { width: 16px; height: 16px; }
@@ -697,9 +707,25 @@ button:focus-visible, a:focus-visible, input:focus-visible {
     padding: 36px 28px 26px;
   }
 
-  .auth-content { width: min(100%, 440px); }
+  .auth-content { 
+    width: min(100%, 440px); 
+    min-height: 420px;
+  }
   .auth-copyright { margin-top: 30px; }
-  .story-side { display: none; }
+
+  .story-side {
+    display: block;
+    min-height: auto;
+    padding: 24px 28px 32px;
+  }
+
+  .story-content { width: min(100%, 440px); margin-inline: auto; }
+
+  .story-heading { margin-bottom: 24px; }
+
+  .story-heading h2 { font-size: 30px; }
+
+  .preview-window { max-width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -712,6 +738,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .auth-heading h1 { font-size: 30px; }
   .auth-form { gap: 17px; }
   .auth-copyright { margin-top: 28px; }
+  .auth-content { min-height: 380px; }
 }
 
 @media (max-width: 360px) {
@@ -719,6 +746,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .auth-heading h1 { font-size: 27px; }
   .field-label-row { align-items: center; }
   .forgot-link { font-size: 12px; }
+  .auth-content { min-height: 400px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
