@@ -1,33 +1,38 @@
 # IntiVentory Web Documentation
 
-This folder contains technical documentation for the web application. Product planning and research live in Notion.
+This folder contains technical documentation for the web application. Product planning, research and decision records live in Notion.
 
 ## Structure
 
 ```
 docs/
-├── README.md                 # This file
+├── README.md
 ├── architecture/
-│   ├── decisions/            # Architecture Decision Records (ADRs)
-│   ├── data-models/          # Database schema documentation
-│   └── system-design.md      # Current: auth frontend + Supabase client
+│   └── system-design.md
 ├── design/
-│   └── login-page.md         # Implemented auth surface brief
+│   └── login-page.md
 ├── security/
-│   ├── authentication.md     # Auth setup and secret handling
-│   └── threat-model.md       # Threat modeling (when created)
+│   ├── authentication.md
+│   └── threat-model.md
 ├── api/
-│   └── contracts.md          # API contracts (when API exists)
+│   └── contracts.md
 ├── operations/
-│   ├── deployment.md         # Deployment guide (when hosting selected)
-│   └── environments.md       # Local/preview/production environments
+│   ├── deployment.md
+│   └── environments.md
 ├── quality/
-│   ├── test-strategy.md      # Vitest/Playwright approach
-│   └── test-cases/           # Test specifications
+│   └── test-strategy.md
 └── assets/
     ├── intiventory-app-icon.svg
     └── intiventory-logo.svg
 ```
+
+Only directories containing tracked documentation are shown above. Add architecture decision records, data models or individual test-case directories when the first approved artifact exists; do not create empty placeholder folders.
+
+## Documentation boundary
+
+- **Notion:** Product requirements, research, proposed options, accepted decisions, roadmap and acceptance criteria.
+- **GitHub docs/:** Technical documentation describing the current implementation, operational guidance and clearly labelled future work.
+- Keep proposals visibly distinct from implemented behavior and accepted technical decisions.
 
 ## Shared Product Identity
 
@@ -48,4 +53,4 @@ These are reused as-is. Do not generate or substitute a different logo. Any futu
 
 ## Working Principle
 
-Record important product and engineering decisions here before implementation. Keep proposed ideas clearly distinguished from decisions that have been confirmed.
+Keep technical documentation synchronized with the code that actually exists. Record product and architecture decisions in Notion, and do not present proposals as approved decisions.
