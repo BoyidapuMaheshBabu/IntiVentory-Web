@@ -5,3 +5,15 @@ dist/
 !.env.example
 *.local
 .DS_Store
+
+# Kilo Agent Manager worktrees
+.kilo/worktrees/
+
+# Agent skills (installed globally, not in repo)
+.agents/skills/
+
+# Impeccable local config
+.impeccable/
+
+# Codex local config
+.codex/
