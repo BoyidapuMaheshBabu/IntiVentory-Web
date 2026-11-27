@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import appIcon from "../docs/assets/intiventory-app-icon.svg";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { useAuth } from "./context/AuthContext";
 
 type AuthView = "sign-in" | "sign-up" | "reset" | "update-password";
 type Feedback = { kind: "success" | "error" | "info"; text: string };
@@ -128,6 +129,8 @@ function App() {
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
   const feedbackId = useId();
+
+  const { session, user, signOut: authSignOut } = useAuth();
 
   const passwordStrength = getPasswordStrength(password);
   const currentCopy = copy[view];
@@ -446,28 +449,33 @@ function App() {
 
                 {showConfirmation && (
                   <div className="password-feedback-block">
-                    {passwordStrength && (
-                      <div
-                        className="password-strength"
-                        id="password-strength"
-                        role="meter"
-                        aria-label="Password strength"
-                        aria-valuemin={0}
-                        aria-valuemax={4}
-                        aria-valuenow={passwordStrength.score}
-                        aria-valuetext={passwordStrength.label}
-                      >
-                        <div className="password-strength-label">
-                          <span>Password strength</span>
-                          <span className={"password-strength-value strength-" + passwordStrength.className}>
-                            {passwordStrength.label}
-                          </span>
-                        </div>
-                        <div className="password-strength-meter" aria-hidden="true">
-                          <span className={"password-strength-fill strength-" + passwordStrength.className} />
-                        </div>
+                    <div
+                      className="password-strength"
+                      id="password-strength"
+                      role="meter"
+                      aria-label="Password strength"
+                      aria-valuemin={0}
+                      aria-valuemax={4}
+                      aria-valuenow={passwordStrength?.score ?? 0}
+                      aria-valuetext={passwordStrength?.label ?? ""}
+                      hidden={!passwordStrength}
+                    >
+                      <div className="password-strength-label">
+                        <span>Password strength</span>
+                        <span className={"password-strength-value strength-" + (passwordStrength?.className ?? "weak")}>
+                          {passwordStrength?.label ?? "Weak"}
+                        </span>
                       </div>
-                    )}
+                      <div className="password-strength-meter" aria-hidden="true">
+                        <span
+                          className={
+                            "password-strength-fill strength-" +
+                            (passwordStrength?.className ?? "weak")
+                          }
+                          style={{ width: passwordStrength ? (passwordStrength.score / 4) * 100 : 0 }}
+                        />
+                      </div>
+                    </div>
 
                     <p className="field-hint" id="password-guidance">
                       {!password ? (
@@ -564,6 +572,25 @@ function App() {
               {loading && <span className="button-spinner" aria-hidden="true" />}
             </button>
           </form>
+
+          {session && (
+            <div className="auth-switch">
+              <p>
+                Signed in as {user?.email}.{" "}
+                <button
+                  className="text-button strong"
+                  type="button"
+                  disabled={loading}
+                  onClick={() => {
+                    authSignOut();
+                    changeView("sign-in");
+                  }}
+                >
+                  Sign out
+                </button>
+              </p>
+            </div>
+          )}
 
           <div className="auth-switch">
             {view === "sign-in" && (

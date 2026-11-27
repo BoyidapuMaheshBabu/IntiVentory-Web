@@ -350,6 +350,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   display: grid;
   gap: 8px;
   margin-top: 4px;
+  min-height: 72px;
 }
 
 .field-hint {
